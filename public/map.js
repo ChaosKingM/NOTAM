@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const map = new maplibregl.Map({
         container: 'map',
-        zoom: 12,
+        zoom: 8,
         center: [-3.703790, 40.416775],
         pitch: 70,
         style: {
@@ -77,11 +77,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const latInput = document.getElementById('lat-field');
         const lonInput = document.getElementById('lon-field');
         const moveBtn = document.getElementById('btn-map-mark');
+        const notamInput = document.getElementById('notam-input')
+        const analyzerButton = document.getElementById('btn-analyzer')
 
         latInput.value = map.getCenter().lat.toFixed(4);
         lonInput.value = map.getCenter().lng.toFixed(4);
 
         let currentMarker = null;
+
+        analyzerButton.addEventListener('click', () => {
+            const notamText = notamInput.value;
+
+            const geometryType = analizarNotam(notamText)
+
+            console.log(`Resultado del análisis: ${geometryType}`);
+        })
 
         moveBtn.onclick = () => {
             const newLat = parseFloat(latInput.value);

@@ -12,6 +12,8 @@
     
         <script src='map.js'></script>
 
+        <script src="notam-parser.js"></script>
+
        
 
 </head>
@@ -19,6 +21,10 @@
     <div id="map"></div>
 
     <div id="form-container">
+
+        <h1>JOSE'S NOTAM</h1>
+
+        <h2>Mark for Specific Coordinate</h2>
 
         <label for="lat-field">Latitude:</label>
         <input type="text" id="lat-field" placeholder="ie: 40.4168">
@@ -28,6 +34,12 @@
         <input type="text" id="lon-field" placeholder="ie: 40.4168">
         
         <button id="btn-map-mark">Enter coordinates</button>
+
+        <h2>NOTAUMATIC</h2>
+
+        <textarea id="notam-input" rows="5" placeholder="Paste Here NOTAM..."></textarea>
+        <button id="btn-analyzer">Analyze and Show Map</button>
+
     </div>
 </body>
 </html>
