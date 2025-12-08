@@ -1,0 +1,22 @@
+
+body { margin: 0; padding: 0; }
+html, body, #map { height: 100%; }
+
+/* ➡️ NUEVO CÓDIGO CSS para la superposición */
+#form-container {
+    position: absolute; /* CLAVE: Flotar sobre otros elementos */
+    top: 10px;          /* Separación de la parte superior */
+    right: 10px;        /* Separación de la derecha */
+    z-index: 10;        /* CLAVE: Asegura que esté por encima del mapa */
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+#form-container input {
+    padding: 5px;
+    border: 1px solid #ccc;
+}

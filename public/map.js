@@ -74,6 +74,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     map.on('load', () => {
 
+        const latInput = document.getElementById('lat-field');
+        const lonInput = document.getElementById('lon-field');
+        const moveBtn = document.getElementById('btn-map-mark');
+
+        latInput.value = map.getCenter().lat.toFixed(4);
+        lonInput.value = map.getCenter().lng.toFixed(4);
+
+        let currentMarker = null;
+
+        moveBtn.onclick = () => {
+            const newLat = parseFloat(latInput.value);
+            const newLon = parseFloat(lonInput.value);
+
+            if (!isNaN(newLat) && !isNaN(newLon)) {
+                map.flyTo({
+                    center: [newLon, newLat],
+                    essential: true,
+                    zoom: 14 
+                });
+
+                if (currentMarker) {
+                    currentMarker.remove();
+                }
+
+                currentMarker = new maplibregl.Marker() 
+                    .setLngLat([newLon, newLat])
+                    .addTo(map);
+                        
+            } else {
+                alert("Por favor, introduce coordenadas válidas.");
+            }
+
+                
+        };
+
+
         // ---- BOTÓN PARA ALTERNAR VISTA ----
         const btn = document.createElement("button");
         btn.innerText = "Cambiar vista";

@@ -6,17 +6,28 @@
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.css' />
-        
+    <link rel='stylesheet' href='style.css' />
+    
         <script src='https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js'></script>
     
         <script src='map.js'></script>
 
-    <style>
-        body { margin: 0; padding: 0; }
-        html, body, #map { height: 100%; }
-    </style>
+       
+
 </head>
 <body>
-<div id="map"></div>
+    <div id="map"></div>
+
+    <div id="form-container">
+
+        <label for="lat-field">Latitude:</label>
+        <input type="text" id="lat-field" placeholder="ie: 40.4168">
+        
+        
+        <label for="lon-field">Longitude:</label>
+        <input type="text" id="lon-field" placeholder="ie: 40.4168">
+        
+        <button id="btn-map-mark">Enter coordinates</button>
+    </div>
 </body>
 </html>
