@@ -1,22 +1,249 @@
+:root {
+    --bg-color: #0b0e14;
+    --sidebar-bg: rgba(20, 24, 33, 0.85);
+    --accent-color: #00bef0;
+    --text-color: #e0e6ed;
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
 
-body { margin: 0; padding: 0; }
-html, body, #map { height: 100%; }
+body,
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
 
-/* ➡️ NUEVO CÓDIGO CSS para la superposición */
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 1;
+}
+
 #form-container {
-    position: absolute; /* CLAVE: Flotar sobre otros elementos */
-    top: 10px;          /* Separación de la parte superior */
-    right: 10px;        /* Separación de la derecha */
-    z-index: 10;        /* CLAVE: Asegura que esté por encima del mapa */
-    background-color: white;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    bottom: 20px;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
 }
-#form-container input {
-    padding: 5px;
-    border: 1px solid #ccc;
+
+h1 {
+    font-size: 1.5rem;
+    margin: 0 0 8px 0;
+    color: var(--accent-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 0.9rem;
+    margin: 20px 0 10px 0;
+    opacity: 0.8;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: white;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+button {
+    width: 100%;
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#btn-analyzer {
+    background: #00ff88;
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.filter-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* Custom Scrollbar */
+#form-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#form-container::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+
+/* Info Panel for active NOTAM */
+#info-panel {
+    position: fixed;
+    bottom: 40px;
+    left: 40px;
+    max-width: 400px;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 20px 15px 15px 15px;
+    z-index: 10;
+    display: none;
+}
+
+#info-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: var(--accent-color);
+}
+
+#info-panel p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    margin: 10px -8px 0 -8px;
+}
+
+.collapsible-header:hover {
+    background: rgba(0, 190, 240, 0.1);
+    color: var(--accent-color);
+}
+
+.collapsible-header h2 {
+    margin: 0;
+}
+
+.toggle-icon {
+    font-size: 0.7rem;
+    transition: transform 0.3s;
+    opacity: 0.6;
+}
+
+.collapsible-header.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s, margin-top 0.3s;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+.nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 5px 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--glass-border);
+}
+
+.nav-controls button {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 2px 8px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.nav-controls button:hover {
+    transform: scale(1.2);
+}
+
+.nav-controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+    transform: none;
+}
+
+#notam-counter {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    font-weight: 600;
+    opacity: 0.8;
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
 }
