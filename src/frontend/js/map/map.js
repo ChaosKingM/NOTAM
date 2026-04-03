@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container: 'map',
         zoom: 3,
         center: [-98, 39],
-        style: 'https://api.maptiler.com/maps/basic/style.json?key=FPrACFQDiXCzyiG0WjWt',
+        style: 'https://api.maptiler.com/maps/basic/style.json?key=NGZp0lqqZeKceNSG4NnP',
     });
 
     map.addControl(new maplibregl.NavigationControl());
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('btn-toggle-view').onclick = () => {
             isSatellite = !isSatellite;
             map.setStyle(isSatellite
-                ? 'https://api.maptiler.com/maps/hybrid/style.json?key=FPrACFQDiXCzyiG0WjWt'
-                : 'https://api.maptiler.com/maps/basic/style.json?key=FPrACFQDiXCzyiG0WjWt'
+                ? 'https://api.maptiler.com/maps/hybrid/style.json?key=NGZp0lqqZeKceNSG4NnP'
+                : 'https://api.maptiler.com/maps/basic/style.json?key=NGZp0lqqZeKceNSG4NnP'
             );
             map.once('idle', () => applyFiltersAndRender(false));
         };
