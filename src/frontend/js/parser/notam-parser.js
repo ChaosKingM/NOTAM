@@ -1,136 +1,142 @@
+import { dmsToDecimal } from '../utils/geo-utils.js';
 
+/**
+ * Centralized regular expression patterns for the parser.
+ */
+const PATTERNS = {
+    SEGMENT: /(?=![A-Z]{3})/g,
+    COORDINATES: /(\d{6,8}[NS])\s*(\d{7,9}[EW])/g,
+    NAV_AIDS: /([A-Z]{3,5})\s+(VORTAC|VOR|INT|FIX|DME|NDB)/g,
+    RADIALS: /R-\d{3}/g,
+    ALTITUDES: /(\d+)\s*(FT|AGL|MSL)|SFC|UNL/g,
+    RADIUS: /(\d+)\s*NM\s*RADIUS/,
+    DATES: /(\d{10})-(\d{10})(\w{0,3})/
+};
 
-function dmsToDecimal(dms) {
-  if (!dms) return null;
-  const directionMatch = dms.match(/[NSWE]/);
-  if (!directionMatch) return null;
-  const direction = directionMatch[0];
+/**
+ * Main entry point to analyze a text string with several NOTAMs.
+ * @param {string} fullText - Full text containing one or more NOTAMs.
+ * @returns {Array} Collection of processed NOTAM objects.
+ */
+export function analyzeNotam(fullText) {
+    const segments = fullText.split(PATTERNS.SEGMENT);
+    const results = [];
 
-  // North/South (Latitude) uses 2 digits for degrees: DDMMSS
-  // East/West (Longitude) uses 3 digits for degrees: DDDMMSS
-  const degDigits = (direction === 'N' || direction === 'S') ? 2 : 3;
+    segments.forEach(notamText => {
+        if (!notamText.trim()) return;
 
-  const digits = dms.replace(direction, "");
-  const degrees = parseInt(digits.substring(0, degDigits));
-  const minutes = parseInt(digits.substring(degDigits, degDigits + 2));
-  const secondsTxt = digits.substring(degDigits + 2);
+        const text = notamText.toUpperCase();
+        const result = initializeNotamObject(notamText.trim());
 
-  let seconds = 0;
-  if (secondsTxt) {
-    if (secondsTxt.length > 2) {
-      // Handle case like 4355616N -> seconds = 61.6
-      seconds = parseFloat(secondsTxt.substring(0, 2) + "." + secondsTxt.substring(2));
-    } else {
-      seconds = parseInt(secondsTxt);
-    }
-  }
+        // Process extractions
+        result.coordinates = extractCoordinates(text);
+        result.navaids = extractNavaids(text);
+        result.altitudes = extractAltitudes(text);
+        result.dates = extractDates(text, result);
+        
+        // Extract radials (as extra description)
+        const radials = text.match(PATTERNS.RADIALS);
+        if (radials) result.description += " Radials: " + radials.join(", ");
 
-  let decimal = degrees + minutes / 60 + seconds / 3600;
+        // Determine Geometry
+        result.geometryType = determineGeometry(text, result);
 
-  // Normalization for the console log (to show valid DMS to the user)
-  let normSeconds = seconds;
-  let normMinutes = minutes;
-  let normDegrees = degrees;
+        // Only add if we detect something useful (Coordinates or Navaids)
+        if (result.coordinates.length > 0 || result.navaids.length > 0) {
+            results.push(result);
+        }
+    });
 
-  if (normSeconds >= 60) {
-    normMinutes += Math.floor(normSeconds / 60);
-    normSeconds = (normSeconds % 60).toFixed(2);
-  }
-  if (normMinutes >= 60) {
-    normDegrees += Math.floor(normMinutes / 60);
-    normMinutes = normMinutes % 60;
-  }
-
-  console.log(`DMS Normalized -> Type: ${direction === "N" || direction === "S" ? "Lat" : "Lon"}, Deg: ${normDegrees}, Min: ${normMinutes}, Sec: ${normSeconds}, Dir: ${direction} (Raw Sec was: ${seconds})`);
-
-  if (direction === 'S' || direction === 'W') {
-    decimal = -decimal;
-  }
-  return decimal;
+    return results;
 }
 
-function analizarNotam(textoCompleto) {
-  const segments = textoCompleto.split(/(?=![A-Z]{3})/g);
-  const results = [];
-
-  segments.forEach(textoNotam => {
-    if (!textoNotam.trim()) return;
-
-    const texto = textoNotam.toUpperCase();
-    const result = {
-      raw: textoNotam.trim(),
-      coordinates: [],
-      altitudes: [],
-      dates: [],
-      geometryType: "UNKNOWN",
-      radius: null,
-      navaids: [], // New field for VORs/Fixes
-      description: ""
+/**
+ * Initializes the basic structure of a NOTAM object.
+ */
+function initializeNotamObject(raw) {
+    return {
+        raw: raw,
+        coordinates: [],
+        altitudes: [],
+        dates: [],
+        geometryType: "UNKNOWN",
+        radius: null,
+        navaids: [],
+        description: ""
     };
+}
 
-    // 1. Extract DMS Coordinates (Flexible 6-8 digits)
-    const coordMatches = texto.match(/(\d{6,8}[NS])\s*(\d{7,9}[EW])/g);
-    if (coordMatches) {
-      coordMatches.forEach(match => {
-        const latPart = match.match(/\d{6,8}[NS]/)[0];
-        const lonPart = match.match(/\d{7,9}[EW]/)[0];
-        const lat = dmsToDecimal(latPart);
-        const lon = dmsToDecimal(lonPart);
-        if (lat !== null && lon !== null) {
-          result.coordinates.push({ lat, lon });
-        }
-      });
+/**
+ * Extracts and converts DMS coordinates to decimals.
+ */
+function extractCoordinates(text) {
+    const coords = [];
+    const matches = text.match(PATTERNS.COORDINATES);
+    
+    if (matches) {
+        matches.forEach(match => {
+            const latPart = match.match(/\d{6,8}[NS]/)[0];
+            const lonPart = match.match(/\d{7,9}[EW]/)[0];
+            const lat = dmsToDecimal(latPart);
+            const lon = dmsToDecimal(lonPart);
+            if (lat !== null && lon !== null) {
+                coords.push({ lat, lon });
+            }
+        });
     }
+    return coords;
+}
 
-    // 2. Extract NAVAIDs and Fixes (e.g., ONL VORTAC, TYNDA INT, MHE VOR)
-    const navaidMatches = texto.match(/([A-Z]{3,5})\s+(VORTAC|VOR|INT|FIX|DME|NDB)/g);
-    if (navaidMatches) {
-      result.navaids = [...new Set(navaidMatches.map(m => m.trim()))];
-    }
+/**
+ * Extracts radio aids (NAVAIDs) and intersections.
+ */
+function extractNavaids(text) {
+    const matches = text.match(PATTERNS.NAV_AIDS);
+    return matches ? [...new Set(matches.map(m => m.trim()))] : [];
+}
 
-    // 3. Extract Radials (e.g., R-039)
-    const radialMatches = texto.match(/R-\d{3}/g);
-    if (radialMatches) {
-      result.description += " Radials: " + radialMatches.join(", ");
-    }
+/**
+ * Extracts and normalizes altitudes.
+ */
+function extractAltitudes(text) {
+    const matches = text.match(PATTERNS.ALTITUDES);
+    if (!matches) return [];
 
-    // 4. Extract Altitudes (Handle digits, SFC and UNL)
-    const altMatches = texto.match(/(\d+)\s*(FT|AGL|MSL)|SFC|UNL/g);
-    if (altMatches) {
-      result.altitudes = altMatches.map(m => {
+    return matches.map(m => {
         const val = m.trim();
         if (val === "SFC") return "0FT";
         if (val === "UNL") return "99999FT";
         return val;
-      });
-    }
+    });
+}
 
-    // 5. Determine Geometry Type
-    const radiusMatch = texto.match(/(\d+)\s*NM\s*RADIUS/);
+/**
+ * Extracts the date range and time zone.
+ */
+function extractDates(text, result) {
+    const match = text.match(PATTERNS.DATES);
+    if (match) {
+        if (match[3]) result.description += ` [TZ: ${match[3]}]`;
+        return [match[1], match[2]];
+    }
+    return [];
+}
+
+/**
+ * Determines the geometry type based on extracted data.
+ */
+function determineGeometry(text, result) {
+    const radiusMatch = text.match(PATTERNS.RADIUS);
+    
     if (radiusMatch) {
-      result.radius = parseFloat(radiusMatch[1]);
-      result.geometryType = "RADIUS";
-    } else if (result.coordinates.length === 1) {
-      result.geometryType = "POINT";
-    } else if (result.coordinates.length > 2) {
-      result.geometryType = "AREA";
-    } else if (result.coordinates.length === 2) {
-      result.geometryType = "ROUTE";
-    } else if (result.navaids.length > 0) {
-      result.geometryType = "NAVAID/ROUTE";
+        result.radius = parseFloat(radiusMatch[1]);
+        return "RADIUS";
     }
-
-    // 6. Extract Dates (Handle suffixes like EST, UTC)
-    const dateMatch = texto.match(/(\d{10})-(\d{10})(\w{0,3})/);
-    if (dateMatch) {
-      result.dates = [dateMatch[1], dateMatch[2]];
-      if (dateMatch[3]) result.description += ` [TZ: ${dateMatch[3]}]`;
-    }
-
-    if (result.coordinates.length > 0 || result.navaids.length > 0) {
-      results.push(result);
-    }
-  });
-
-  return results;
+    
+    if (result.coordinates.length === 1) return "POINT";
+    if (result.coordinates.length === 2) return "ROUTE";
+    if (result.coordinates.length > 2) return "AREA";
+    if (result.navaids.length > 0) return "NAVAID/ROUTE";
+    
+    return "UNKNOWN";
 }

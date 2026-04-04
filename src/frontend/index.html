@@ -12,70 +12,91 @@
     <link rel='stylesheet' href='css/style.css' />
 
     <script src='https://unpkg.com/maplibre-gl@5.13.0/dist/maplibre-gl.js'></script>
-    <script src="js/parser/notam-parser.js"></script>
-    <script src='js/map/map.js'></script>
+    <script type="module" src='js/map/map.js'></script>
 </head>
 
 <body>
-    <div id="map"></div>
+    <main id="map-viewport">
+        <div id="map"></div>
+    </main>
 
-    <div id="info-panel" class="sidebar">
-        <div id="notam-navigation" class="nav-controls" style="display: none;">
-            <button id="btn-prev-notam">◀</button>
+    <aside id="selection-details" class="sidebar info-card">
+        <nav id="notam-navigation" class="nav-controls" style="display: none;">
+            <button id="btn-prev-notam" aria-label="Previous NOTAM">◀</button>
             <span id="notam-counter">1 of 1</span>
-            <button id="btn-next-notam">▶</button>
-        </div>
-        <h3 id="info-type">NOTAM INFO</h3>
-        <p id="info-coords">Coordinates: --</p>
-        <p id="info-alt">Altitude: --</p>
-        <p id="info-date">Dates: --</p>
-        <button id="btn-copy" class="secondary-btn">Copy JSON</button>
-        <button id="btn-download" class="secondary-btn">Download CSV</button>
-    </div>
+            <button id="btn-next-notam" aria-label="Next NOTAM">▶</button>
+        </nav>
+        <section>
+            <h3 id="info-type">NOTAM INFO</h3>
+            <p id="info-coords">Coordinates: --</p>
+            <p id="info-alt">Altitude: --</p>
+            <p id="info-date">Dates: --</p>
+        </section>
+        <footer class="actions">
+            <button id="btn-copy" class="secondary-btn">Copy JSON</button>
+            <button id="btn-download" class="secondary-btn">Download CSV</button>
+        </footer>
+    </aside>
 
-    <div id="form-container">
-        <h1>SKYJOS</h1>
+    <button id="btn-toggle-sidebar" class="sidebar-toggle" aria-label="Toggle Sidebar">
+        <span class="toggle-arrow">▶</span>
+    </button>
 
-        <h2>NOTAM Analyzer</h2>
-        <textarea id="notam-input" rows="6"
-            placeholder="Paste NOTAM text here... (Example: !PNM 07/580 ZMP OBST...)"></textarea>
-        <button id="btn-analyzer">Analyze & Plot Area</button>
+    <aside id="control-panel" class="sidebar glass-panel">
+        <div class="sidebar-content">
+            <header>
+                <h1>SKYJOS</h1>
+            </header>
 
-        <div class="collapsible-header collapsed" onclick="toggleSection('quick-mark-content')">
-            <h2>Quick Mark</h2>
-            <span class="toggle-icon">▼</span>
-        </div>
-        <div id="quick-mark-content" class="collapsible-content collapsed">
-            <div class="filter-group">
-                <div>
-                    <label>Lat</label>
-                    <input type="text" id="lat-field" placeholder="44.2334">
+            <section id="analyzer-section">
+                <h2>NOTAM Analyzer</h2>
+                <textarea id="notam-input" rows="6"
+                    placeholder="Paste NOTAM text here... (Example: !PNM 07/580 ZMP OBST...)"></textarea>
+                <button id="btn-analyzer">Analyze & Plot Area</button>
+            </section>
+
+            <section id="quick-mark-section">
+                <div class="collapsible-header collapsed" data-target="quick-mark-content">
+                    <h2>Quick Mark</h2>
+                    <span class="toggle-icon">▼</span>
                 </div>
-                <div>
-                    <label>Lon</label>
-                    <input type="text" id="lon-field" placeholder="-98.4821">
+                <div id="quick-mark-content" class="collapsible-content collapsed">
+                    <div class="filter-group">
+                        <div>
+                            <label for="lat-field">Lat</label>
+                            <input type="text" id="lat-field" placeholder="44.2334">
+                        </div>
+                        <div>
+                            <label for="lon-field">Lon</label>
+                            <input type="text" id="lon-field" placeholder="-98.4821">
+                        </div>
+                    </div>
+                    <button id="btn-map-mark">Fly to Coord</button>
                 </div>
-            </div>
-            <button id="btn-map-mark">Fly to Coord</button>
-        </div>
+            </section>
 
-        <div class="collapsible-header collapsed" onclick="toggleSection('filters-content')">
-            <h2>Filters</h2>
-            <span class="toggle-icon">▼</span>
-        </div>
-        <div id="filters-content" class="collapsible-content collapsed">
-            <label>Min Altitude (FT)</label>
-            <input type="number" id="filter-alt" value="0">
+            <section id="filters-section">
+                <div class="collapsible-header collapsed" data-target="filters-content">
+                    <h2>Filters</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="filters-content" class="collapsible-content collapsed">
+                    <label for="filter-alt">Min Altitude (FT)</label>
+                    <input type="number" id="filter-alt" value="0">
 
-            <label>Date Range (YYMMDD)</label>
-            <div class="filter-group">
-                <input type="text" id="filter-date-start" placeholder="Start">
-                <input type="text" id="filter-date-end" placeholder="End">
-            </div>
-        </div>
+                    <label>Date Range (YYMMDD)</label>
+                    <div class="filter-group">
+                        <input type="text" id="filter-date-start" placeholder="Start" aria-label="Start Date">
+                        <input type="text" id="filter-date-end" placeholder="End" aria-label="End Date">
+                    </div>
+                </div>
+            </section>
 
-        <button class="secondary-btn" id="btn-toggle-view">Switch Satellite/OSM</button>
-    </div>
+            <footer class="utility-actions">
+                <button class="secondary-btn" id="btn-toggle-view">Switch Satellite/OSM</button>
+            </footer>
+        </div>
+    </aside>
 </body>
 
 </html>

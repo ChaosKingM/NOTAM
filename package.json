@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/ChaosKingM/NOTAM#readme",
   "dependencies": {
-    "dotenv": "^17.4.0",
     "express": "^5.1.0"
   },
   "devDependencies": {
