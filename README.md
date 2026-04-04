@@ -1,4 +1,4 @@
-# SKYJOS - NOTAM Analyzer & Visualizer ✈️
+# SKYJOS - NOTAM Analyzer & Visualizer 
 
 An advanced aeronautical tool designed to parse complex NOTAM (Notice to Air Missions) data and visualize them on a state-of-the-art interactive map.
 
