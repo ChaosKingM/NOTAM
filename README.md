@@ -3,7 +3,7 @@
 An advanced aeronautical tool designed to parse complex NOTAM (Notice to Air Missions) data and visualize them on a state-of-the-art interactive map.
 
 <p align="center">
-  <a href="https://chaoskingm.github.io/NOTAM/">
+  <a href="https://chaoskingm.github.io/NOTAM/src/frontend/index.html">
     <img src="https://img.shields.io/badge/START_NOW-00A357?style=for-the-badge&logo=github&labelColor=000000" alt="Start Now">
   </a>
 </p>
