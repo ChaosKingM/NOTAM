@@ -81,6 +81,29 @@ document.addEventListener('DOMContentLoaded', function () {
         // Export buttons
         ui.btnCopy.onclick = () => exportToClipboard();
         ui.btnDownload.onclick = () => exportToCSV();
+        
+        ui.btnCloseDetails.onclick = () => {
+            updateSidebarInfo(null);
+            clearSelectionMarkers();
+            updateMapSource(map, 'selected-shape', null);
+        };
+
+        ui.btnClearAll.onclick = () => {
+            // Clear input and state
+            ui.notamInput.value = "";
+            allNotams = [];
+            selectedNotamStack = [];
+            currentStackIndex = 0;
+
+            // Clear visual map elements
+            updateMapSource(map, 'notam-shapes', []);
+            updateMapSource(map, 'selected-shape', null);
+            clearMarkers();
+            clearSelectionMarkers();
+
+            // Reset UI
+            updateSidebarInfo(null);
+        };
 
         // Manual coordinate marking
         ui.btnMapMark.onclick = () => {
@@ -131,6 +154,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 const feat = createCircleFeature(first.lon, first.lat, n.radius);
                 feat.properties = { id: globalIdx };
                 features.push(feat);
+
+                // Add marker for the center
+                addMarker(map, first.lat, first.lon, '#00bef0', () => {
+                    selectedNotamStack = [n];
+                    currentStackIndex = 0;
+                    showCurrentFromStack(map);
+                });
             } else if (n.geometryType === "AREA") {
                 const coords = n.coordinates.map(c => [c.lon, c.lat]);
                 coords.push(coords[0]);
@@ -140,13 +170,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     geometry: { type: 'Polygon', coordinates: [coords] }
                 });
 
-                // Add markers for ALL points of the area
+                // Add markers for explicit points of the area (skip generated ones)
                 n.coordinates.forEach(coord => {
-                    addMarker(map, coord.lat, coord.lon, '#00bef0', () => {
-                        selectedNotamStack = [n];
-                        currentStackIndex = 0;
-                        showCurrentFromStack(map);
-                    });
+                    if (!coord.isGenerated) {
+                        addMarker(map, coord.lat, coord.lon, '#00bef0', () => {
+                            selectedNotamStack = [n];
+                            currentStackIndex = 0;
+                            showCurrentFromStack(map);
+                        });
+                    }
                 });
             } else if (n.geometryType === "ROUTE") {
                 const coords = n.coordinates.map(c => [c.lon, c.lat]);
@@ -223,8 +255,11 @@ document.addEventListener('DOMContentLoaded', function () {
         clearSelectionMarkers();
         if (data.coordinates.length > 0) {
             // Add markers for all coordinates (especially useful for AREA and ROUTE)
+            // Add markers for direct coordinates (skip generated arc points)
             data.coordinates.forEach(coord => {
-                selectionMarkers.push(addMarker(map, coord.lat, coord.lon, '#ff9800'));
+                if (!coord.isGenerated) {
+                    selectionMarkers.push(addMarker(map, coord.lat, coord.lon, '#ff9800'));
+                }
             });
             
             const bounds = getNotamBounds(data);
@@ -249,7 +284,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function exportToCSV() {
         if (window.currentNotamData) {
             const n = window.currentNotamData;
-            const csv = `Attribute,Value\nType,${n.geometryType}\nCoord,"${n.coordinates.map(c => `${c.lat},${c.lon}`).join(';')}"\nAltitude,"${n.altitudes.join(';')}"\nDates,"${n.dates.join('-')}"`;
+            const explicit = (n.coordinates || []).filter(c => !c.isGenerated);
+            const csv = `Attribute,Value\nType,${n.geometryType}\nCoord,"${explicit.map(c => `${c.lat},${c.lon}`).join(';')}"\nAltitude,"${n.altitudes.join(';')}"\nDates,"${n.dates.join('-')}"`;
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');

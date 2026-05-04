@@ -212,6 +212,33 @@ section {
     margin: 0 0 12px 0;
     font-size: 1.1rem;
     color: var(--accent-color);
+    padding-right: 24px; /* Space for close button */
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition-base), transform var(--transition-base);
+    z-index: 15;
+    padding: 0;
+}
+
+.close-btn:hover {
+    color: #ff5252; /* Nice modern red */
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
 }
 
 #selection-details p {

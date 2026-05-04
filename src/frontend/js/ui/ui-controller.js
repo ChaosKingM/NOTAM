@@ -22,6 +22,8 @@ export const ui = {
     btnToggleView: document.getElementById('btn-toggle-view'),
     btnMapMark: document.getElementById('btn-map-mark'),
     btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+    btnCloseDetails: document.getElementById('btn-close-details'),
+    btnClearAll: document.getElementById('btn-clear-all'),
     latField: document.getElementById('lat-field'),
     lonField: document.getElementById('lon-field')
 };
@@ -90,8 +92,9 @@ export function updateSidebarInfo(data, currentIdx, stackTotal) {
     }
     ui.infoType.innerText = typeStr;
 
-    ui.infoCoords.innerText = data.coordinates && data.coordinates.length > 0
-        ? `Coordinates: ${data.coordinates.map(c => `${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}`).join(' | ')}`
+    const explicitCoords = (data.coordinates || []).filter(c => !c.isGenerated);
+    ui.infoCoords.innerText = explicitCoords.length > 0
+        ? `Coordinates: ${explicitCoords.map(c => `${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}`).join(' | ')}`
         : "Coordinates: NOT DEFINED (Route/Navaid)";
 
     ui.infoAlt.innerText = `Altitude: ${data.altitudes.join(', ') || 'N/A'}`;

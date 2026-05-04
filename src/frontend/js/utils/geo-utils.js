@@ -27,11 +27,68 @@ export function createCircleFeature(lon, lat, radiusNM) {
     
     return {
         type: 'Feature',
+        properties: {},
         geometry: {
             type: 'Polygon',
             coordinates: [coords]
         }
     };
+}
+
+/**
+ * Calculates the bearing between two points in degrees (0-360).
+ * @param {Object} from - {lat, lon}
+ * @param {Object} to - {lat, lon}
+ * @returns {number} Bearing in degrees
+ */
+export function getBearing(from, to) {
+    const lat1 = from.lat * Math.PI / 180;
+    const lon1 = from.lon * Math.PI / 180;
+    const lat2 = to.lat * Math.PI / 180;
+    const lon2 = to.lon * Math.PI / 180;
+
+    const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) -
+              Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+    let brng = Math.atan2(y, x);
+    brng = brng * 180 / Math.PI;
+    return (brng + 360) % 360;
+}
+
+/**
+ * Generates an array of points forming an arc.
+ * @param {Object} center - {lat, lon}
+ * @param {number} radiusNM - Radius in Nautical Miles
+ * @param {number} startBrng - Starting bearing in degrees
+ * @param {number} endBrng - Ending bearing in degrees
+ * @param {boolean} clockwise - Direction of the arc
+ * @returns {Array} Array of {lat, lon} points
+ */
+export function generateArcPoints(center, radiusNM, startBrng, endBrng, clockwise) {
+    const radiusKM = radiusNM * 1.852;
+    const points = [];
+    const steps = 32;
+
+    const dX = radiusKM / (111.32 * Math.cos(center.lat * Math.PI / 180));
+    const dY = radiusKM / 110.574;
+
+    let totalDiff = clockwise ? (endBrng - startBrng + 360) % 360 : (startBrng - endBrng + 360) % 360;
+    if (totalDiff === 0 && startBrng !== endBrng) totalDiff = 360; // Full circle if they are the same but intended as arc
+
+    for (let i = 0; i <= steps; i++) {
+        const currentBrng = clockwise 
+            ? (startBrng + (totalDiff * i / steps)) % 360
+            : (startBrng - (totalDiff * i / steps) + 360) % 360;
+        
+        const rad = currentBrng * Math.PI / 180;
+        points.push({
+            lat: center.lat + dY * Math.cos(rad),
+            lon: center.lon + dX * Math.sin(rad),
+            isGenerated: true
+        });
+    }
+
+    return points;
 }
 
 /**
@@ -57,7 +114,9 @@ export function dmsToDecimal(dms) {
 
     let seconds = 0;
     if (secondsTxt) {
-        if (secondsTxt.length > 2) {
+        if (secondsTxt.includes('.')) {
+            seconds = parseFloat(secondsTxt);
+        } else if (secondsTxt.length > 2) {
             // Handle cases like 4355616N -> seconds = 61.6
             seconds = parseFloat(secondsTxt.substring(0, 2) + "." + secondsTxt.substring(2));
         } else {
